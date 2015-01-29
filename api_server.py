@@ -1,8 +1,9 @@
 #!flask/bin/python
 from flask import Flask, request
+from flask import jsonify
 import json
 from bson import json_util
-from bson.objectid import ObjectId
+
 from pymongo import Connection
 from flask import abort
 from flask.ext.httpauth import HTTPBasicAuth
@@ -12,56 +13,88 @@ app = Flask(__name__)
 
 # MongoDB connection
 connection = Connection('localhost', 27017)
-db = connection.pubs
+db = connection.baragsDB
 def toJson(data):
     """Convert Mongo object(s) to JSON"""
-    return json.dumps(data, default=json_util.default)
+    return json.encoder(data, default=json_util.default)
 
+#Get the pubs
 @app.route('/api/pubs', methods=['GET'])
 def get_pubs():
     if request.method == 'GET':
-        results = db['pubsData'].find()
+        results = db['pubs'].find()
         json_results = []
         for result in results:
             json_results.append(result)
-        return toJson(json_results)
+        return jsonify(pubs=str(json_results))
 
-#@app.route('/api/pubs/<int:pub_id>', methods=['GET'])
-#def get_pub(pub_id):
-    #pub = [pub for pub in pubs if pub['id'] == pub_id]
-    #if len(pub) == 0:
-        #abort(404)
-    #return jsonify({'pub': pub[0]})
+#Get the specific pub
+@app.route('/api/pubs/<int:index>', methods=['GET'])
+def get_pub(index):
+    if request.method == 'GET':
+        pubs = db['pubs'].find()
+        pub = pubs[index]
+        if len(pub) > 1:
+            return jsonify(pub=str(pub))
+        else:
+            abort(500)
+        #return jsonify(pub=str(pubs[index]))
+
+#Post a pub
+@app.route('/api/pubs', methods=['POST'])
+def insert_pub():
+    #Verify the method (GET or POST)
+    if request.method == 'POST':
+        pub = request.get_json(force=True)
+        #If the request have more than one field
+        if len(pub) > 1:
+            pubs = db.pubs
+            post_id = pubs.insert(pub)
+            if len(str(post_id)) == 0:
+                abort(500)
+            else:
+                return jsonify(mns200="Added")
+        else:
+            print "Need at least one field"
+            abort(400)
+
+#Get all users
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    if request.method == 'GET':
+        users = db.users.find()
+        json_results = []
+        for user in users:
+            json_results.append(user)
+        return jsonify(user=str(json_results))
+
+#Get specific user
+@app.route('/api/users/<int:index>', methods=['GET'])
+def get_user(index):
+    if request.method == 'GET':
+        users = db.users.find()
+        user = users[index]
+        if len(user) > 1:
+            return jsonify(user=str(user))
+        else:
+            abort(500)
+
+#Post a user
+@app.route('/api/users', methods=['POST'])
+def insert_user():
+    if request.method == 'POST':
+        user = request.get_json(force=True)
+        #If the request have more than one field
+        if len(user) > 1:
+            users = db.users
+            post_id = users.insert(user)
+            if len(str(post_id)) == 0:
+                abort(500)
+            else:
+                return jsonify(mns200="Added")
+        else:
+            print "Need at least one field"
+            abort(400)
 
 if(__name__ == '__main__'):
     app.run()
-
-    #pubs = [
-    #{
-        #'id': 1,
-        #'pub_name': u'Bar Nacional',
-        #'description': u'Amplio bar con terraza y ambiente musical alternativo',
-        #'phone': 4491234567,
-        #'address': u'Madero #103 Col. Centro',
-        #'beer_price': 20.00,
-        #'shot_price': 35.00
-    #},
-    #{
-        #'id': 2,
-        #'pub_name': u'Micheladas Galerias',
-        #'description':u'Lugar para bailar con tambora en vivo',
-        #'address': u'C.C Galerias',
-        #'phone': 4498765124,
-        #'beer_price': 35.00,
-        #'shot_price': 40.00
-    #},
-    #{
-        #'id': 3,
-        #'pub_name': u'Los Remedios de Pachita',
-        #'description':u'Atractivo lugar con musica electronica',
-        #'address': u'Madero #200 Col. Centro',
-        #'phone': 4491111111,
-        #'beer_price': 30.00,
-        #'shot_price': 70.00
-    #}
-#]
