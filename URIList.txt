@@ -1,0 +1,41 @@
+/* List of avaliable URI directions for make requests to the barags API */
+
+
+#######GET requests###########
+
+#Get the list of bars
+/api/pubs
+
+#Get a specific bar for id
+/api/pubs/id_bar
+
+#Get the list of users (owner bars)
+/api/users
+
+#Get a specific user for id
+/api/users/id_user
+
+
+#######POST requests###########
+
+#Add a new pub (send the params of the web form)
+/api/pubs
+
+#Add a new user (send the params of the web form)
+/api/users
+
+
+#######DELETE requests###########
+
+#Delete a pub for id 
+/api/pubs/id_pub
+
+#Delete a user for id 
+/api/users/id_user
+
+
+#######Pending requests###########
+
+#PUT for modify users and pubs
+#Login for the users
+#Images
